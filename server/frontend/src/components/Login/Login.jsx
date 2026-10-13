@@ -1,72 +1,61 @@
 import React, { useState } from 'react';
-
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import "./Login.css";
 import Header from '../Header/Header';
 
-const Login = ({ onClose }) => {
-
+const Login = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [open,setOpen] = useState(true)
+  const [error, setError] = useState("");
 
-  let login_url = window.location.origin+"/djangoapp/login";
-
-  const login = async (e) => {
-    e.preventDefault();
-
-    const res = await fetch(login_url, {
+  const login = async (event) => {
+    event.preventDefault();
+    setError("");
+    try {
+      const response = await fetch("/djangoapp/login", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            "userName": userName,
-            "password": password
-        }),
-    });
-    
-    const json = await res.json();
-    if (json.status != null && json.status === "Authenticated") {
-        sessionStorage.setItem('username', json.userName);
-        setOpen(false);        
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userName, password }),
+      });
+      const json = await response.json();
+      if (response.ok && json.status === "Authenticated") {
+        sessionStorage.setItem("username", json.userName);
+        sessionStorage.setItem("firstname", json.firstName || "");
+        sessionStorage.setItem("lastname", json.lastName || "");
+        navigate("/", { replace: true });
+      } else {
+        setError("Username or password is incorrect.");
+      }
+    } catch {
+      setError("Could not connect to the server. Please try again.");
     }
-    else {
-      alert("The user could not be authenticated.")
-    }
-};
-
-  if (!open) {
-    window.location.href = "/";
   };
-  
 
   return (
     <div>
-      <Header/>
-    <div onClick={onClose}>
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
-        }}
-        className='modalContainer'
-      >
-          <form className="login_panel" style={{}} onSubmit={login}>
-              <div>
-              <span className="input_field">Username </span>
-              <input type="text"  name="username" placeholder="Username" className="input_field" onChange={(e) => setUserName(e.target.value)}/>
-              </div>
-              <div>
-              <span className="input_field">Password </span>
-              <input name="psw" type="password"  placeholder="Password" className="input_field" onChange={(e) => setPassword(e.target.value)}/>            
-              </div>
-              <div>
-              <input className="action_button" type="submit" value="Login"/>
-              <input className="action_button" type="button" value="Cancel" onClick={()=>setOpen(false)}/>
-              </div>
-              <a className="loginlink" href="/register">Register Now</a>
-          </form>
-      </div>
-    </div>
+      <Header />
+      <main className="modalContainer">
+        <form className="login_panel" onSubmit={login}>
+          {location.state?.registered && <p role="status">Account created. Please sign in.</p>}
+          {location.state?.loggedOut && <p role="status">You have been logged out.</p>}
+          {error && <p role="alert">{error}</p>}
+          <div>
+            <label className="input_field" htmlFor="username">Username</label>
+            <input id="username" type="text" name="username" placeholder="Username" className="input_field" autoComplete="username" required value={userName} onChange={(event) => setUserName(event.target.value)} />
+          </div>
+          <div>
+            <label className="input_field" htmlFor="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Password" className="input_field" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+          </div>
+          <div>
+            <button className="action_button" type="submit">Login</button>
+            <Link className="action_button" to="/">Cancel</Link>
+          </div>
+          <Link className="loginlink" to="/register">Create an account</Link>
+        </form>
+      </main>
     </div>
   );
 };

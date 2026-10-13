@@ -47,7 +47,12 @@ def login_user(request):
     if user is not None:
         # If user is valid, call login method to login current user
         login(request, user)
-        data = {"userName": username, "status": "Authenticated"}
+        data = {
+            "userName": username,
+            "firstName": user.first_name,
+            "lastName": user.last_name,
+            "status": "Authenticated",
+        }
     return JsonResponse(data)
 
 
@@ -82,10 +87,8 @@ def registration(request):
             first_name=first_name,
             last_name=last_name
         )
-        # Log in the user
-        login(request, user)
         return JsonResponse({"userName": username,
-                             "status": "Authenticated"})
+                             "status": "Registered"})
 
 
 # Update the `get_dealerships` render list of dealerships

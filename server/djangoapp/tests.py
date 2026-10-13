@@ -44,3 +44,4 @@ class AuthenticationFlowTests(TestCase):
 
         self.assertEqual(logout_response.status_code, 200)
         self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertTrue(User.objects.filter(username="flow-user").exists())

@@ -80,7 +80,7 @@ def registration(request):
                              "error": "Already Registered"})
     except User.DoesNotExist:
         # Create user
-        user = User.objects.create_user(
+        User.objects.create_user(
             username=username,
             password=password,
             email=email,
@@ -138,8 +138,8 @@ def add_review(request):
         try:
             post_review(data)
             return JsonResponse({"status": 200})
-        except Exception as err:
-            # Log the full exception server-side without exposing details to the client
+        except Exception:
+            # Log the error server-side without exposing it to the client.
             logger.exception("Error in posting review")
             return JsonResponse(
                 {"status": 401,
